@@ -119,6 +119,7 @@ const assertIncrementCounterHandler: A.Equals<
   (
     input: Input,
     requiredEventStores: [typeof counterEventStore, typeof userEventStore],
+    options?: { timeout?: number },
   ) => Promise<Output>
 > = 1;
 assertIncrementCounterHandler;
@@ -128,6 +129,7 @@ const assertIncrementCounterNoOutputHandler: A.Equals<
   (
     input: Input,
     requiredEventStores: [typeof counterEventStore, typeof userEventStore],
+    options?: { timeout?: number },
   ) => Promise<void>
 > = 1;
 assertIncrementCounterNoOutputHandler;
@@ -141,6 +143,7 @@ const assertIncrementCounterAHandler: A.Equals<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     input: any,
     requiredEventStores: [typeof counterEventStore, typeof userEventStore],
+    options?: { timeout?: number },
   ) => Promise<Output>
 > = 1;
 assertIncrementCounterAHandler;
@@ -154,6 +157,7 @@ const assertIncrementCounterANoOutputHandler: A.Equals<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     input: any,
     requiredEventStores: [typeof counterEventStore, typeof userEventStore],
+    options?: { timeout?: number },
   ) => Promise<void>
 > = 1;
 assertIncrementCounterANoOutputHandler;

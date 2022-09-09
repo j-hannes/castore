@@ -337,3 +337,14 @@ export const incrementCounterANoOutput = new JSONSchemaCommand({
     });
   },
 });
+
+export const waits2s = new JSONSchemaCommand({
+  commandId: 'WAITS_2S',
+  requiredEventStores: tuple(counterEventStore, userEventStore),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handler: async (_, __) => {
+    await new Promise(resolve => setTimeout(resolve, 4000));
+
+    console.log('end handler');
+  },
+});

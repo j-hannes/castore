@@ -1,6 +1,11 @@
 import { FromSchema, JSONSchema } from 'json-schema-to-ts';
 
-import { Command, EventAlreadyExistsError, EventStore } from '@castore/core';
+import {
+  Command,
+  EventAlreadyExistsError,
+  EventStore,
+  TimeoutError,
+} from '@castore/core';
 
 export type OnEventAlreadyExistsCallback = (
   error: EventAlreadyExistsError,
@@ -30,7 +35,11 @@ export class JSONSchemaCommand<
   outputSchema?: OS;
   eventAlreadyExistsRetries: number;
   onEventAlreadyExists: OnEventAlreadyExistsCallback;
-  handler: (input: I, requiredEventStores: E) => Promise<O>;
+  handler: (
+    input: I,
+    requiredEventStores: E,
+    options?: { timeout?: number },
+  ) => Promise<O>;
 
   constructor({
     commandId,
@@ -62,15 +71,31 @@ export class JSONSchemaCommand<
       this.outputSchema = outputSchema;
     }
 
-    this.handler = async (input, eventStores) => {
+    this.handler = async (input, eventStores, options) => {
       let retriesLeft = this.eventAlreadyExistsRetries;
       let attemptNumber = 1;
 
       while (retriesLeft >= 0) {
         try {
-          const output = await handler(input, eventStores);
+          const timeout = new Promise<never>((_, reject) => {
+            setTimeout(() => {
+              reject(
+                new TimeoutError({
+                  commandId,
+                  timeout: options?.timeout,
+                }),
+              );
+            }, options?.timeout);
+          });
 
-          return output;
+          const promise = new Promise((resolve, reject) => {
+            handler(input, eventStores).then(resolve).catch(reject);
+          });
+
+          // returns a race between timeout and the passed promise
+          const output = await Promise.race<T>([promise, timeout]);
+
+          return output as O;
         } catch (error) {
           if (!(error instanceof EventAlreadyExistsError)) {
             throw error;
@@ -84,7 +109,7 @@ export class JSONSchemaCommand<
           if (retriesLeft === 0) {
             throw error;
           }
-
+          console.log('..retrying');
           retriesLeft -= 1;
           attemptNumber += 1;
         }

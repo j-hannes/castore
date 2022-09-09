@@ -1,4 +1,8 @@
-import { EventDetail, EventAlreadyExistsError } from '@castore/core';
+import {
+  EventDetail,
+  EventAlreadyExistsError,
+  TimeoutError,
+} from '@castore/core';
 
 import {
   counterEventsMocks,
@@ -14,6 +18,7 @@ import {
   pushEventMock,
   requiredEventStores,
   userEventStore,
+  waits2s,
 } from './jsonSchema.util.test';
 
 getEventsMock.mockResolvedValue({ events: counterEventsMocks });
@@ -127,6 +132,23 @@ describe('jsonSchemaCommand implementation', () => {
         attemptNumber: 3,
         retriesLeft: 0,
       });
+    });
+  });
+
+  describe('TimeoutError behavior', () => {
+    fit('should throw a timeout error', async () => {
+      await expect(() =>
+        waits2s.handler(
+          { counterId: '123' },
+          [counterEventStore, userEventStore],
+          { timeout: 1999 },
+        ),
+      ).rejects.toThrow(
+        new TimeoutError({
+          commandId: waits2s.commandId,
+          timeout: 1999,
+        }),
+      );
     });
   });
 });

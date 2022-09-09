@@ -24,7 +24,11 @@ export class Command<
   };
   commandId: string;
   requiredEventStores: $E;
-  handler: (input: I, requiredEventStores: E) => Promise<O>;
+  handler: (
+    input: I,
+    requiredEventStores: E,
+    options?: { timeout?: number },
+  ) => Promise<O>;
 
   constructor({
     commandId,
